@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>چت روم حرفه‌ای</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div id="login" class="login-container">
+    <h2>ورود به چت</h2>
+    <input id="username" placeholder="نام کاربری" />
+    <input id="room" placeholder="نام اتاق" />
+    <button id="joinBtn">ورود</button>
+</div>
+
+<div id="chat" class="chat-container" style="display:none;">
+    <aside class="sidebar">
+        <h3>اتاق: <span id="roomName"></span></h3>
+        <div id="users" class="user-list"></div>
+        <h4 class="dm-header">پیام خصوصی به:</h4>
+        <div id="dmUsers" class="dm-user-list"></div>
+    </aside>
+    <main class="chat-main">
+        <ul id="messages" class="messages"></ul>
+        <div id="typingIndicator" class="typing-indicator" style="display:none;"></div>
+        <div class="chat-form-container">
+            <input id="input" placeholder="پیام خود را بنویسید..." />
+            <button id="send">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const socket = io('https://chatline-zuey.onrender.com');
+
+const loginDiv = document.getElementById('login');
+const chatDiv = document.getElementById('chat');
+const joinBtn = document.getElementById('joinBtn');
+const usernameInput = document.getElementById('username');
+const roomInput = document.getElementById('room');
+const roomNameSpan = document.getElementById('roomName');
+const usersDiv = document.getElementById('users');
+const dmDiv = document.getElementById('dmUsers');
+const messages = document.getElementById('messages');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send');
+
+// ایجاد عنصر "در حال تایپ..." (به HTML اضافه نشده بود، اینجا اضافه می کنیم)
+// const typingIndicator = document.createElement('div');
+// typingIndicator.className = 'typing-indicator';
+// typingIndicator.innerHTML = `
+//     <span id="typingUser">...</span> در حال تایپ است
+//     <span></span><span></span><span></span>
+// `;پdocument.querySelector('.chat-main').appendChild(typingIndicator);
+
+
+let currentRoom = '';
+let username = '';
+let selectedUser = null; // null یعنی پیام عمومی (بهتر از رشته خالی)
+let isTyping = false;
+let typingTimer = null;
+
+
+
+// دریافت رویداد تایپ
+socket.on('typing', data => {
+    if (data.id !== username && data.room === currentRoom) {
+        typingIndicator.textContent = `${data.id} در حال تایپ است...`;
+        typingIndicator.style.display = 'block';
+    }
+});
+
+socket.on('stopTyping', data => {
+    if (data.id !== username && data.room === currentRoom) {
+        typingIndicator.style.display = 'none';
+    }
+});
+
+input.addEventListener('input', () => {
+    if (!isTyping) {
+        isTyping = true;
+        socket.emit('typing', { room: currentRoom, id: username });
+    }
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+        if (isTyping) {
+            isTyping = false;
+            socket.emit('stopTyping', { room: currentRoom, id: username });
+        }
+    }, 2000); // 2 ثانیه بعد از آخرین تایپ
+});
+
+
+// نمایش پیام‌ها (بدون تغییر)
+function addMessage(text, type='incoming', usernameInitial='') {
+    const li = document.createElement('li');
+    li.className = `message ${type}`;
+    if(usernameInitial){
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar';
+        avatar.textContent = usernameInitial;
+        li.appendChild(avatar);
+    }
+    const textNode = document.createTextNode(` ${text}`);
+    li.appendChild(textNode);
+
+    messages.appendChild(li);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+// نمایش Toast (بدون تغییر)
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ورود به اتاق (بدون تغییر)
+joinBtn.addEventListener('click', () => {
+    username = usernameInput.value.trim();
+    const room = roomInput.value.trim();
+    if (!username || !room) return;
+    currentRoom = room;
+    socket.emit('joinRoom', { username, room });
+    loginDiv.style.display = 'none';
+    chatDiv.style.display = 'flex';
+    roomNameSpan.textContent = room;
+});
+
+// ارسال پیام (با افزودن stopTyping)
+sendBtn.addEventListener('click', () => {
+    const msg = input.value.trim();
+    if (!msg) return;
+    socket.emit('sendMessage', { message: msg, room: currentRoom, toUser: selectedUser || undefined });
+    if(selectedUser){
+        addMessage(`(خصوصی به ${selectedUser}) شما: ${msg}`, 'private', username.charAt(0).toUpperCase());
+    } else {
+        addMessage(`شما: ${msg}`, 'outgoing', username.charAt(0).toUpperCase());
+    }
+    input.value = '';
+    
+    // توقف رویداد تایپ پس از ارسال پیام
+    if (isTyping) {
+        socket.emit('stopTyping', { room: currentRoom });
+        isTyping = false;
+    }
+});
+
+
+// --- منطق تایپ کردن ---
+input.addEventListener('input', () => {
+    if (!isTyping) {
+        isTyping = true;
+        socket.emit('typing', { room: currentRoom });
+    }
+    // یک تایمر برای توقف تایپ در نظر می گیریم
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+        if (isTyping) {
+            socket.emit('stopTyping', { room: currentRoom });
+            isTyping = false;
+        }
+    }, 3000); // 3 ثانیه بعد از آخرین کلیک
+});
+
+
+// --- منطق کاربران (با افزودن نشانگر وضعیت) ---
+// تابع جدید برای رندر کردن لیست کاربران خصوصی (مانند پاسخ قبلی)
+function renderDmUsers(users) {
+    dmDiv.innerHTML = '';
+    // اضافه کردن دکمه عمومی (مانند پاسخ قبلی)
+    const publicBtn = document.createElement('span');
+    publicBtn.textContent = 'ارسال عمومی';
+    publicBtn.classList.add('public-toggle');
+    if (selectedUser === null) {
+        publicBtn.classList.add('selected');
+    }
+    publicBtn.addEventListener('click', () => {
+        selectedUser = null;
+        showToast(`پیام بعدی به صورت عمومی ارسال می‌شود`);
+        renderDmUsers(users);
+    });
+    dmDiv.prepend(publicBtn);
+
+    users.forEach(u => {
+        if(u !== username){
+            const span = document.createElement('span');
+            span.textContent = u;
+            if (selectedUser === u) {
+                span.classList.add('selected');
+            }
+            span.addEventListener('click', () => {
+                if (selectedUser === u) {
+                    selectedUser = null; 
+                    showToast(`پیام بعدی به صورت عمومی ارسال می‌شود`);
+                } else {
+                    selectedUser = u;
+                    showToast(`پیام بعدی به صورت خصوصی به ${u} ارسال می‌شود`);
+                }
+                renderDmUsers(users);
+            });
+            dmDiv.appendChild(span);
+        }
+    });
+}
+
+socket.on('updateUsers', users => {
+    // رندر لیست کاربران عمومی با نشانگر وضعیت آنلاین
+    usersDiv.innerHTML = users.map(u => `
+        <span class='user'>
+            ${u}
+            <span class='user-status online'></span> </span>
+    `).join('');
+    
+    // رندر لیست کاربران خصوصی
+    renderDmUsers(users);
+});
+
+// --- دریافت رویداد تایپ کردن ---
+socket.on('typing', data => {
+    if (data.id !== username && data.room === currentRoom) {
+        document.getElementById('typingUser').textContent = data.id;
+        typingIndicator.classList.add('visible');
+        messages.scrollTop = messages.scrollHeight; // اسکرول مجدد
+        
+        // تنظیم تایمر برای پنهان کردن نشانگر اگر رویداد 'stopTyping' دریافت نشد
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            typingIndicator.classList.remove('visible');
+        }, 5000); 
+    }
+});
+
+// --- دریافت رویداد توقف تایپ کردن ---
+socket.on('stopTyping', data => {
+    if (data.id !== username && data.room === currentRoom) {
+        typingIndicator.classList.remove('visible');
+        clearTimeout(typingTimeout);
+    }
+});
+
+
+// دریافت پیام‌ها (بدون تغییر)
+socket.on('receiveMessage', data => {
+    if(data.type === 'system'){
+        addMessage(data.message, 'system');
+        showToast(data.message);
+        notifyUser('سیستم', data.message);
+    } else if(data.type === 'private'){
+        addMessage(`(خصوصی) ${data.id}: ${data.message}`, 'private', data.id.charAt(0).toUpperCase());
+        notifyUser(`پیام خصوصی از ${data.id}`, data.message);
+    } else if(data.type === 'chat'){
+        if(data.id !== username){
+            addMessage(`${data.id}: ${data.message}`, 'incoming', data.id.charAt(0).toUpperCase());
+            notifyUser(`پیام از ${data.id}`, data.message);
+        }
+    }
+    typingIndicator.classList.remove('visible');
+});
+
+
+// --- تابع نوتیفیکیشن ---
+function notifyUser(title, message) {
+    if (!("Notification" in window)) return; // مرورگر پشتیبانی نمی‌کنه
+    if (Notification.permission === "granted") {
+        new Notification(title, { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2462/2462719.png' });
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification(title, { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2462/2462719.png' });
+            }
+        });
+    }
+}
+
+
+
+
+</script>
+</body>
+</html>

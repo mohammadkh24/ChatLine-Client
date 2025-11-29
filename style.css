@@ -1,0 +1,441 @@
+/* استایل برای فونت وزیرمتن و تنظیمات عمومی */
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap');
+
+:root {
+    /* رنگ های تم تیره (Soft Dark Mode) */
+    --primary-color: #007bff; /* آبی برای دکمه ها و هایلایت */
+    --primary-dark: #0056b3;
+    --background-color: #1a1a2e; /* پس زمینه اصلی */
+    --chat-bg-color: #162030; /* پس زمینه چت باکس */
+    --sidebar-bg-color: #111827; /* پس زمینه سایدبار */
+    --text-color: #f0f8ff; /* رنگ متن روشن */
+    --incoming-msg-bg: #334155; /* حباب پیام ورودی */
+    --outgoing-msg-bg: #007bff; /* حباب پیام خروجی */
+    --private-msg-bg: #ff6b6b; /* پیام خصوصی */
+    --system-msg-bg: #ffd700;
+    --border-color: #3e4c60;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: var(--text-color);
+    direction: rtl; /* تنظیم جهت نوشتار برای فارسی */
+}
+
+/* --- استایل های فرم ورود (Login) --- */
+.login-container {
+    background: var(--chat-bg-color);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 350px;
+    text-align: center;
+}
+
+.login-container h2 {
+    color: var(--text-color);
+    margin-top: 0;
+    font-weight: 700;
+}
+
+.login-container input {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #2b394d;
+    color: var(--text-color);
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.login-container input:focus {
+    border-color: var(--primary-color);
+}
+
+.login-container button {
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.login-container button:hover {
+    background: var(--primary-dark);
+}
+
+/* --- استایل های ظرف اصلی چت (Chat Container) --- */
+.chat-container {
+    width: 90%; /* کمی بزرگتر */
+    max-width: 1000px;
+    height: 90vh;
+    max-height: 700px;
+    background: var(--chat-bg-color);
+    border-radius: 15px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+/* --- استایل های سایدبار (Sidebar) --- */
+.sidebar {
+    width: 250px; /* عریض تر */
+    min-width: 200px;
+    background: var(--sidebar-bg-color);
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border-left: 1px solid var(--border-color);
+}
+
+.sidebar h3, .sidebar h4 {
+    color: var(--text-color);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.user-list, .dm-user-list {
+    max-height: 45%;
+    overflow-y: auto;
+    padding-left: 0; /* برای راستچین کردن */
+}
+
+/* استایل دهی به اسکرول بار (اختیاری و فقط برای Webkit) */
+.user-list::-webkit-scrollbar, .dm-user-list::-webkit-scrollbar, .messages::-webkit-scrollbar {
+    width: 6px;
+}
+.user-list::-webkit-scrollbar-track, .dm-user-list::-webkit-scrollbar-track, .messages::-webkit-scrollbar-track {
+    background: var(--chat-bg-color);
+}
+.user-list::-webkit-scrollbar-thumb, .dm-user-list::-webkit-scrollbar-thumb, .messages::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 10px;
+}
+.user-list::-webkit-scrollbar-thumb:hover, .dm-user-list::-webkit-scrollbar-thumb:hover, .messages::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+.user-list span, .dm-user-list span {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 5px;
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.user-list span {
+    background: var(--primary-color);
+    color: white;
+}
+
+.dm-header {
+    margin-top: 5px;
+    font-style: italic;
+    color: #ff9800;
+}
+
+.dm-user-list span {
+    background: transparent;
+    border: 1px solid #ff9800;
+    color: #ff9800;
+}
+.dm-user-list span:hover {
+    background: #ff980020;
+    transform: translateY(-1px);
+}
+
+/* --- استایل های بخش اصلی چت (Chat Main) --- */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 20px;
+}
+
+.messages {
+    flex: 1;
+    list-style: none;
+    padding: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 0;
+    padding-right: 10px;
+}
+
+/* --- استایل های حباب های پیام (Message Bubbles) --- */
+.message {
+    max-width: 70%; /* کمی عریض تر */
+    padding: 12px 18px;
+    border-radius: 20px; /* گوشه های کاملاً گرد */
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.3s forwards cubic-bezier(0.25, 0.46, 0.45, 0.94); /* انیمیشن نرم تر */
+    position: relative;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.incoming {
+    background: var(--incoming-msg-bg);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 5px; /* نوک پیام */
+}
+
+.message.outgoing {
+    background: var(--outgoing-msg-bg);
+    color: white;
+    align-self: flex-end;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 5px; /* نوک پیام */
+}
+
+.message.system {
+    background: var(--system-msg-bg);
+    color: #1a1a2e;
+    font-style: italic;
+    align-self: center;
+    max-width: 80%;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 10px;
+}
+
+.message.private {
+    background: var(--private-msg-bg);
+    color: white;
+    align-self: flex-end;
+    border: 2px solid #ff3d67;
+    /* یک نوار قرمز کوچک برای تأکید بر خصوصی بودن */
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 5px;
+}
+
+/* --- استایل آواتار --- */
+.avatar {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    line-height: 35px;
+    margin-left: 10px; /* برای راستچین بودن */
+    font-size: 16px;
+    float: right; /* برای قرارگیری در کنار متن در پیام های ورودی */
+}
+.incoming .avatar {
+    background: #4b5563;
+}
+.outgoing .avatar, .private .avatar {
+    float: left; /* برای پیام های خروجی و خصوصی */
+}
+
+/* --- استایل نوار ورودی پیام (Input Bar) --- */
+.chat-form-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.chat-form-container input {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 25px; /* کاملاً گرد */
+    border: 1px solid var(--border-color);
+    background: #2b394d;
+    color: var(--text-color);
+    outline: none;
+    font-size: 16px;
+}
+
+.chat-form-container button {
+    width: 50px; /* آیکون دکمه مربع */
+    height: 50px;
+    padding: 0;
+    border: none;
+    border-radius: 50%; /* گرد */
+    background: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.chat-form-container button:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* --- استایل های Toast (اعلانات) --- */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2b394d;
+    color: var(--text-color);
+    padding: 10px 15px;
+    border-radius: 10px;
+    opacity: 0.95;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    animation: fadeToast 0.3s ease-in-out;
+}
+
+#username {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+#room {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+#joinBtn {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+#input {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+/* style.css */
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    font-size: 14px;
+    color: white;
+    background-color:  var(--primary-dark);
+    border-radius: 20px;
+    margin-top: 10px;
+    width: fit-content;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .typing-indicator .dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px;
+    background-color: #fff;
+    border-radius: 50%;
+    animation: bounce 1s infinite;
+  }
+  
+  .typing-indicator .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator .dots span:nth-child(3) { animation-delay: 0.4s; }
+  
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+
+@keyframes fadeToast {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 0.95; }
+}
+
+/* --- Responsive Design (برای موبایل) --- */
+@media (max-width: 768px) {
+    .chat-container {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 10px;
+    }
+    
+    .sidebar h3, .sidebar h4 {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin: 5px 0;
+        flex-basis: 100%;
+    }
+    
+    .user-list, .dm-user-list {
+        max-height: 100px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        display: flex;
+        gap: 8px;
+        padding-bottom: 5px;
+        flex-basis: 100%;
+    }
+
+    .user-list span, .dm-user-list span {
+        flex-shrink: 0;
+        margin-bottom: 0;
+    }
+
+    .chat-main {
+        flex: 1;
+        padding: 15px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+}
